@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # E-library
 ## App da biblioteca eletrônica
 
@@ -40,8 +39,3 @@ npm install @react-native-firebase OU npm install firebase
 
 npm install @react-navigation/stack
 npm install @react-navigation/native
-=======
-# E_Library
-
-App Bibliotecária eletrônica
->>>>>>> a298f5b3c1e93d497d595138e2215614cfd180f7
