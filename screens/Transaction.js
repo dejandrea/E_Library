@@ -1,40 +1,45 @@
 import React, { Component } from "react";
-import { View, Text, StyleSheet, Image, ImageBackground, TextInput } from "react-native";
-import { TouchableOpacity } from "react-native";
+import {
+  View,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  Text,
+  ImageBackground,
+  Image
+} from "react-native";
 import * as Permissions from "expo-permissions";
 import { BarCodeScanner } from "expo-barcode-scanner";
+import db from "../config";
 
-//carregando as imagens da tela
 const bgImage = require("../assets/background2.png");
 const appIcon = require("../assets/appIcon.png");
 const appName = require("../assets/appName.png");
 
-export default class TransactionScreen extends React.Component {
-  // definindo estados
+export default class TransactionScreen extends Component {
   constructor(props) {
-    super(props)
+    super(props);
     this.state = {
-      bookId:"",
-      studentId:"",
+      bookId: "",
+      studentId: "",
       domState: "normal",
       hasCameraPermissions: null,
-      scanned: false,
-    }
+      scanned: false
+    };
   }
 
-  getCameraPermission = async domState => {
-    //extraindo a chave status com seu valor de permissions
-    const { status } = await Permissions.askAsync(Permissions.CAMERA)
+  getCameraPermissions = async domState => {
+    const { status } = await Permissions.askAsync(Permissions.CAMERA);
 
-    // passando o status para o state
-    //se status for "granted" usuário deu permissão
     this.setState({
+      /*status === "granted" é verdadeiro se o usuário concedeu permissão
+          status === "granted" é falso se o usuário não concedeu a permissão
+        */
       hasCameraPermissions: status === "granted",
       domState: domState,
       scanned: false
-    })
-
-  }
+    });
+  };
 
   handleBarCodeScanned = async ({ type, data }) => {
     const { domState } = this.state;
@@ -52,7 +57,31 @@ export default class TransactionScreen extends React.Component {
         scanned: true
       });
     }
-  }
+  };
+
+  handleTransaction = () => {
+    var { bookId } = this.state;
+    db.collection("books")
+      .doc(bookId)
+      .get()
+      .then(doc => {
+        console.log(doc.data())
+        var book = doc.data();
+        if (book.is_book_avaliable) {
+          this.initiateBookIssue();
+        } else {
+          this.initiateBookReturn();
+        }
+      });
+  };
+
+  initiateBookIssue = () => {
+    console.log("Livro entregue para o aluno!");
+  };
+
+  initiateBookReturn = () => {
+    console.log("Livro devolvido à biblioteca!");
+  };
 
   render() {
     const { bookId, studentId, domState, scanned } = this.state;
@@ -74,38 +103,44 @@ export default class TransactionScreen extends React.Component {
           <View style={styles.lowerContainer}>
             <View style={styles.textinputContainer}>
               <TextInput
-                 style={styles.textinput}
-                 placeholder={"ID do Livro"}
-                 placeholderTextColor={"#FFFFFF"}
-                 value={bookId}
-                 onChangeText={text => this.setState({ bookId: text })}
+                style={styles.textinput}
+                placeholder={"ID do Livro"}
+                placeholderTextColor={"#FFFFFF"}
+                value={bookId}
+                onChangeText={text => this.setState({ bookId: text })}
               />
               <TouchableOpacity
                 style={styles.scanbutton}
-                onPress={() => this.getCameraPermission("bookId")}
+                onPress={() => this.getCameraPermissions("bookId")}
               >
-                <Text style={styles.buttonText}>Digitalizar</Text>
+                <Text style={styles.scanbuttonText}>Digitalizar</Text>
               </TouchableOpacity>
             </View>
             <View style={[styles.textinputContainer, { marginTop: 25 }]}>
               <TextInput
-                 style={styles.textinput}
-                 placeholder={"ID do Aluno"}
-                 placeholderTextColor={"#FFFFFF"}
-                 value={studentId}
-                 onChangeText={text => this.setState({ studentId: text })}
+                style={styles.textinput}
+                placeholder={"ID do Aluno"}
+                placeholderTextColor={"#FFFFFF"}
+                value={studentId}
+                onChangeText={text => this.setState({ studentId: text })}
               />
               <TouchableOpacity
                 style={styles.scanbutton}
-                onPress={() => this.getCameraPermission("studentId")}
+                onPress={() => this.getCameraPermissions("studentId")}
               >
-                <Text style={styles.buttonText}>Digitalizar</Text>
+                <Text style={styles.scanbuttonText}>Digitalizar</Text>
               </TouchableOpacity>
             </View>
+            <TouchableOpacity
+              style={[styles.button, { marginTop: 25 }]}
+              onPress={this.handleTransaction}
+            >
+              <Text style={styles.buttonText}>Enviar</Text>
+            </TouchableOpacity>
           </View>
         </ImageBackground>
       </View>
-    )
+    );
   }
 }
 
@@ -176,13 +211,12 @@ const styles = StyleSheet.create({
     height: 55,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#f48d20",
-    borderRadius: 15,
-
+    backgroundColor: "#F48D20",
+    borderRadius: 15
   },
   buttonText: {
     fontSize: 24,
-    color: "#ffffff",
+    color: "#FFFFFF",
     fontFamily: "Rajdhani_600SemiBold"
   }
 });
